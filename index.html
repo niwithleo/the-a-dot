@@ -105,8 +105,12 @@
         </div>
       </div>
 
-      <!-- CHECKOUT -->
-      <div class="checkout-section" id="checkoutSection" hidden aria-label="Checkout form">
+    </section>
+
+    <!-- ── VIEW: CHECKOUT ── -->
+    <section id="view-checkout" class="view" aria-label="Checkout" hidden>
+      <div class="checkout-section">
+        <button class="back-link" id="backToCartBtn" aria-label="Back to cart">← Back to Cart</button>
         <h2>Checkout</h2>
 
         <form id="checkoutForm" novalidate>
@@ -143,10 +147,9 @@
             <span class="field-error" id="payError" role="alert"></span>
           </fieldset>
 
-          <!-- Payment instructions — hidden until method selected -->
-          <div class="pay-instructions" id="payInstructions" hidden aria-live="polite">
-            <h3 id="payInstructionsTitle">How to Pay</h3>
-            <ol id="payInstructionsList"></ol>
+          <!-- Payment preview — hidden until method selected -->
+          <div class="pay-preview" id="payPreview" hidden aria-live="polite">
+            <p id="payPreviewText"></p>
           </div>
 
           <div class="checkout-total-row">
@@ -155,45 +158,56 @@
           </div>
 
           <span class="field-error" id="formError" role="alert"></span>
-          <button type="submit" class="btn btn-primary btn-full" id="placeOrderBtn">Place Order &amp; Text It →</button>
-          <button type="button" class="btn btn-ghost btn-full" id="backToCartBtn">← Back to Cart</button>
+          <button type="submit" class="btn btn-primary btn-full" id="placeOrderBtn">Place Order →</button>
         </form>
       </div>
+    </section>
 
-      <!-- CONFIRMATION -->
-      <div class="confirm-section" id="confirmSection" hidden aria-label="Order confirmation">
+    <!-- ── VIEW: CONFIRM ── -->
+    <section id="view-confirm" class="view" aria-label="Order confirmation" hidden>
+      <div class="confirm-section">
         <div class="confirm-inner">
           <div class="confirm-icon" aria-hidden="true">&#x2714;</div>
           <h2>Order Placed!</h2>
-          <p class="confirm-sub">Text your order to us now — we bake fresh Friday night and you pick up Saturday.</p>
+          <p class="confirm-sub">Do these two things right now and you're set.</p>
 
-          <div class="order-code-block" id="orderCodeBlock">
+          <div class="order-code-block">
             <p class="order-code-label">Your Order Code</p>
             <p class="order-code" id="orderCode" aria-live="polite"></p>
           </div>
 
-          <div class="order-summary-block" id="orderSummaryBlock" aria-label="Order summary">
-            <pre id="orderSummaryText" tabindex="0"></pre>
+          <!-- Step 1: Pay -->
+          <div class="confirm-step" id="confirmPayBlock">
+            <!-- Injected by JS based on payment method -->
           </div>
 
-          <div class="confirm-actions">
-            <a href="#" class="btn btn-primary" id="smsBtn" aria-label="Text order to The A-Dot">
-              📱 Text My Order
+          <!-- Step 2: Text your order -->
+          <div class="confirm-step">
+            <p class="confirm-step-label">Step 2 — Text your order to us</p>
+            <a href="#" class="btn btn-secondary btn-full" id="smsBtn" aria-label="Text order to The A-Dot">
+              📱 Text My Order to (470) 908-0492
             </a>
-            <button class="btn btn-secondary" id="copyBtn" aria-label="Copy order summary to clipboard">
+            <p class="confirm-step-note">Opens a pre-filled text with your full order summary. Hit send.</p>
+          </div>
+
+          <details class="confirm-summary-details">
+            <summary>View full order summary</summary>
+            <div class="order-summary-block" aria-label="Order summary">
+              <pre id="orderSummaryText" tabindex="0"></pre>
+            </div>
+            <button class="btn btn-ghost btn-full" id="copyBtn" aria-label="Copy order summary to clipboard">
               Copy Summary
             </button>
-          </div>
+          </details>
 
           <div class="confirm-next">
-            <p>We'll text you the pickup address and your slot within 30–60 minutes of payment clearing.</p>
+            <p>We'll text you the pickup address within 30–60 minutes of payment clearing.</p>
             <p><strong>Payment must clear by Friday 8 PM</strong> or your order won't be baked.</p>
           </div>
 
           <button class="btn btn-ghost btn-full" id="newOrderBtn">Start a New Order</button>
         </div>
       </div>
-
     </section>
 
     <!-- ── VIEW: FAQ ── -->

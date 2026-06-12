@@ -179,7 +179,9 @@ function showView(name) {
   $$('.nav-btn').forEach(b => b.classList.remove('active'));
   const view = $(`#view-${name}`);
   if (view) { view.classList.add('active'); view.hidden = false; }
-  const btn = $(`[data-view="${name}"]`);
+  // Keep "Order" nav button active for checkout and confirm views
+  const navName = (name === 'checkout' || name === 'confirm') ? 'home' : name;
+  const btn = $(`[data-view="${navName}"]`);
   if (btn) btn.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -382,8 +384,7 @@ function updateCartCount() {
 function updateCheckoutTotal() {
   const el = $('#checkoutTotal');
   if (el) el.textContent = `$${cartTotal()}`;
-  // Also update live total inside payment instructions
-  renderPaymentInstructions();
+  renderPaymentPreview();
 }
 
 /* ══════════════════════════════════════════════
@@ -473,58 +474,101 @@ function closeDrawer() {
 
 function goToCheckout() {
   if (cart.length === 0) { showToast("Add something to your cart first."); return; }
-  hide($('#cartSection'));
-  show($('#checkoutSection'));
+  closeDrawer();
+  showView('checkout');
+  updateCheckoutTotal();
   $('#custName')?.focus();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function goBackToCart() {
-  hide($('#checkoutSection'));
-  show($('#cartSection'));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showView('home');
 }
 
-/* Payment instructions per method */
-const PAYMENT_INSTRUCTIONS = {
-  cashapp: (total) => [
-    `Place your order below and text it to us at <strong>${CONFIG.phoneDisplay}</strong>.`,
-    `Right away, send <strong>$${total}</strong> to <span class="pay-handle">${CONFIG.cashAppHandle}</span> on Cash App. Put your <strong>order code in the payment note</strong>.`,
-    `Within 30–60 minutes you'll get a text with the <strong>pickup address and your pickup time</strong> (${CONFIG.pickupDay}, ${CONFIG.pickupWindow}).`,
-    `Payment must clear by <strong>${CONFIG.cutoffDay} ${CONFIG.cutoffTime}</strong> — unpaid orders don't get baked.`,
-  ],
-  venmo: (total) => [
-    `Place your order below and text it to us at <strong>${CONFIG.phoneDisplay}</strong>.`,
-    `Right away, send <strong>$${total}</strong> to <span class="pay-handle">${CONFIG.venmoHandle}</span> on Venmo. Put your <strong>order code in the payment note</strong>.`,
-    `Within 30–60 minutes you'll get a text with the <strong>pickup address and your pickup time</strong> (${CONFIG.pickupDay}, ${CONFIG.pickupWindow}).`,
-    `Payment must clear by <strong>${CONFIG.cutoffDay} ${CONFIG.cutoffTime}</strong> — unpaid orders don't get baked.`,
-  ],
-  applepay: (total) => [
-    `Place your order below and text it to us at <strong>${CONFIG.phoneDisplay}</strong>.`,
-    `Right away, inside that same Messages thread, tap the <strong>+</strong> icon → Apple Cash and send <strong>$${total}</strong>. Your order code will already be in the thread.`,
-    `Within 30–60 minutes you'll get a text with the <strong>pickup address and your pickup time</strong> (${CONFIG.pickupDay}, ${CONFIG.pickupWindow}).`,
-    `Payment must clear by <strong>${CONFIG.cutoffDay} ${CONFIG.cutoffTime}</strong> — unpaid orders don't get baked.`,
-  ],
-};
-
-function renderPaymentInstructions() {
-  const panel   = $('#payInstructions');
-  const title   = $('#payInstructionsTitle');
-  const list    = $('#payInstructionsList');
+/* Simple payment preview shown during checkout (before order code exists) */
+function renderPaymentPreview() {
+  const panel   = $('#payPreview');
+  const text    = $('#payPreviewText');
   const checked = $('input[name="payMethod"]:checked');
-  if (!panel || !list) return;
+  if (!panel || !text) return;
 
   if (!checked) { hide(panel); return; }
 
   const method = checked.value;
   const total  = cartTotal();
-  const steps  = PAYMENT_INSTRUCTIONS[method]?.(total);
-  if (!steps)  { hide(panel); return; }
-
-  const labels = { cashapp: 'Cash App', venmo: 'Venmo', applepay: 'Apple Cash' };
-  title.textContent = `How to Pay with ${labels[method]}`;
-  list.innerHTML = steps.map(s => `<li>${s}</li>`).join('');
+  const previews = {
+    cashapp:  `You'll send <strong>$${total}</strong> to <span class="pay-handle">${CONFIG.cashAppHandle}</span> on Cash App. After placing your order you'll get a direct link — order code pre-filled.`,
+    venmo:    `You'll send <strong>$${total}</strong> to <span class="pay-handle">${CONFIG.venmoHandle}</span> on Venmo. After placing your order you'll get a direct link — order code pre-filled.`,
+    applepay: `You'll send <strong>$${total}</strong> via Apple Cash inside the Messages thread. After texting your order, tap <strong>+</strong> → Apple Cash to pay.`,
+  };
+  text.innerHTML = previews[method] || '';
   show(panel);
+}
+
+/* Build Cash App / Venmo deep links */
+function buildPayLink(method, total, code) {
+  if (method === 'cashapp') {
+    // cash.app/$handle/amount — opens directly to pay this person
+    return `https://cash.app/${CONFIG.cashAppHandle}/${total}`;
+  }
+  if (method === 'venmo') {
+    // Venmo URL with handle, amount, and note pre-filled
+    const username = CONFIG.venmoHandle.replace(/^@/, '');
+    const note     = encodeURIComponent(code);
+    return `https://venmo.com/u/${username}?txn=pay&amount=${total}.00&note=${note}`;
+  }
+  return null;
+}
+
+/* Render the Step 1 pay block on the confirmation screen */
+function renderConfirmPayment(method, total, code) {
+  const block = $('#confirmPayBlock');
+  if (!block) return;
+
+  if (method === 'cashapp') {
+    const link = buildPayLink('cashapp', total, code);
+    block.innerHTML = `
+      <p class="confirm-step-label">Step 1 — Pay now on Cash App</p>
+      <a href="${link}" class="btn-pay btn-pay-cashapp" target="_blank" rel="noopener"
+         id="payNowBtn" aria-label="Pay $${total} on Cash App">
+        <span class="pay-btn-icon" aria-hidden="true">$</span>
+        Pay $${total} on Cash App
+      </a>
+      <p class="confirm-step-note">
+        Opens Cash App to <strong>${CONFIG.cashAppHandle}</strong> with $${total} pre-filled.
+        In the "For" note, paste your order code: <strong>${code}</strong>
+        <button class="inline-copy-btn" id="copyCodeBtn" aria-label="Copy order code ${code}">Copy code</button>
+      </p>
+    `;
+    $('#copyCodeBtn')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(code).catch(() => {});
+      showToast('Order code copied!');
+    });
+
+  } else if (method === 'venmo') {
+    const link = buildPayLink('venmo', total, code);
+    block.innerHTML = `
+      <p class="confirm-step-label">Step 1 — Pay now on Venmo</p>
+      <a href="${link}" class="btn-pay btn-pay-venmo" target="_blank" rel="noopener"
+         aria-label="Pay $${total} on Venmo">
+        <span class="pay-btn-icon" aria-hidden="true">V</span>
+        Pay $${total} on Venmo
+      </a>
+      <p class="confirm-step-note">
+        Opens Venmo to <strong>${CONFIG.venmoHandle}</strong> — amount and order code <strong>${code}</strong> are already filled in.
+      </p>
+    `;
+
+  } else {
+    // Apple Cash — payment happens inside the iMessage thread
+    block.innerHTML = `
+      <p class="confirm-step-label">Step 1 — Pay via Apple Cash in iMessage</p>
+      <p class="applepay-note">
+        After you text your order (Step 2 below), come back to that Messages thread.
+        Tap the <strong>+</strong> icon → <strong>Apple Cash</strong> and send <strong>$${total}</strong>.
+        Your order code <strong>${code}</strong> will already be in the thread.
+      </p>
+    `;
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -634,38 +678,39 @@ function placeOrder(e) {
   const phone     = $('#custPhone').value.trim();
   const payMethod = $('input[name="payMethod"]:checked').value;
   const code      = generateOrderCode();
+  const total     = cartTotal();
   const summary   = buildOrderSummary(code, name, phone, payMethod);
 
-  // Store for confirmation screen
+  // Populate confirmation screen
   $('#orderCode').textContent = code;
   $('#orderSummaryText').textContent = summary;
 
   // SMS link
-  const smsBody  = encodeURIComponent(summary);
-  const smsLink  = `sms:${CONFIG.phone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${smsBody}`;
-  const smsBtn   = $('#smsBtn');
+  const smsBody = encodeURIComponent(summary);
+  const smsLink = `sms:${CONFIG.phone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${smsBody}`;
+  const smsBtn  = $('#smsBtn');
   if (smsBtn) smsBtn.href = smsLink;
 
-  // Copy button
+  // Copy summary button
   const copyBtn = $('#copyBtn');
   if (copyBtn) {
     copyBtn.onclick = () => {
-      navigator.clipboard.writeText(summary).then(() => showToast('Copied!')).catch(() => {
-        // Fallback for older browsers
+      navigator.clipboard.writeText(summary).catch(() => {
         const ta = document.createElement('textarea');
         ta.value = summary;
         document.body.appendChild(ta);
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        showToast('Copied!');
       });
+      showToast('Copied!');
     };
   }
 
-  hide($('#checkoutSection'));
-  show($('#confirmSection'));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Build pay block based on method
+  renderConfirmPayment(payMethod, total, code);
+
+  showView('confirm');
 }
 
 /* ══════════════════════════════════════════════
@@ -678,22 +723,19 @@ function resetAll() {
   // Clear form
   const form = $('#checkoutForm');
   if (form) form.reset();
-  // Clear payment selection
+  // Clear payment selection and preview
   $$('input[name="payMethod"]').forEach(r => r.checked = false);
-  hide($('#payInstructions'));
+  hide($('#payPreview'));
   // Clear errors
   $$('.field-error').forEach(e => e.textContent = '');
   $$('.invalid').forEach(e => e.classList.remove('invalid'));
 
-  // Re-render
+  // Re-render menu and cart
   renderSingles();
   renderPacks();
   renderCart();
 
-  hide($('#confirmSection'));
-  hide($('#checkoutSection'));
-  show($('#cartSection'));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showView('home');
 }
 
 /* ══════════════════════════════════════════════
@@ -819,11 +861,7 @@ function attachEvents() {
 
   // Payment method change
   document.addEventListener('change', e => {
-    if (e.target.name === 'payMethod') {
-      renderPaymentInstructions();
-      // Visual selected state
-      $$('.pay-card').forEach(card => card.classList.remove('selected'));
-    }
+    if (e.target.name === 'payMethod') renderPaymentPreview();
   });
 
   // Submit order

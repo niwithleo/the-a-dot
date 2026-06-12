@@ -470,6 +470,24 @@ section, .hero, .how-it-works, .menu-section, .cart-section,
 }
 .cart-total-row strong { font-size: 1.4rem; }
 
+/* ── Back link ── */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  background: transparent;
+  border: none;
+  font-family: var(--font-body);
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1rem;
+  opacity: .6;
+}
+.back-link:hover { opacity: 1; }
+
 /* ── Checkout ── */
 .checkout-section { padding-top: 1.5rem; }
 .field-group { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1.1rem; }
@@ -537,19 +555,17 @@ section, .hero, .how-it-works, .menu-section, .cart-section,
 .apple-icon   { background: var(--ink); color: var(--white); border-color: var(--ink); font-size: 1.1rem; }
 .pay-label { font-size: .8rem; font-weight: 600; text-align: center; }
 
-/* Payment instructions */
-.pay-instructions {
+/* Payment preview (simplified, during checkout) */
+.pay-preview {
   background: #FFFBF4;
   border: var(--border);
   border-left: 5px solid var(--gold);
   border-radius: var(--radius);
-  padding: 1rem;
+  padding: .85rem 1rem;
   margin-bottom: 1.1rem;
+  font-size: .92rem;
 }
-.pay-instructions h3 { font-size: 1rem; margin-bottom: .75rem; }
-.pay-instructions ol { padding-left: 1.4rem; }
-.pay-instructions li { margin-bottom: .6rem; font-size: .92rem; line-height: 1.5; }
-.pay-instructions strong { color: var(--ink); }
+.pay-preview p { margin: 0; }
 .pay-handle {
   display: inline-block;
   background: var(--peach);
@@ -573,38 +589,96 @@ section, .hero, .how-it-works, .menu-section, .cart-section,
 .checkout-total-row strong { font-size: 1.3rem; }
 
 /* ── Confirmation ── */
-.confirm-section { padding: 2rem 1rem; }
+.confirm-section { padding: 1.5rem 1rem 2rem; }
 .confirm-inner {
   background: var(--white);
   border: var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
-  padding: 1.75rem 1.25rem;
+  padding: 1.5rem 1.25rem;
   text-align: center;
 }
 .confirm-icon {
-  font-size: 3rem;
+  font-size: 2.5rem;
   color: var(--green);
-  margin-bottom: .5rem;
+  margin-bottom: .4rem;
 }
-.confirm-inner h2 { margin-bottom: .5rem; }
-.confirm-sub { opacity: .75; margin-bottom: 1.25rem; }
+.confirm-inner h2 { margin-bottom: .35rem; }
+.confirm-sub { opacity: .75; margin-bottom: 1rem; font-size: .95rem; }
 .order-code-block {
   background: var(--ink);
   color: var(--white);
   border-radius: var(--radius);
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: .85rem 1rem;
+  margin-bottom: 1.25rem;
 }
-.order-code-label { font-size: .8rem; opacity: .6; margin-bottom: .2rem; text-transform: uppercase; letter-spacing: .08em; }
-.order-code { font-family: 'Courier New', monospace; font-size: 1.8rem; font-weight: 700; letter-spacing: .1em; }
+.order-code-label { font-size: .75rem; opacity: .55; margin-bottom: .15rem; text-transform: uppercase; letter-spacing: .08em; }
+.order-code { font-family: 'Courier New', monospace; font-size: 1.8rem; font-weight: 700; letter-spacing: .12em; }
+
+/* Confirmation steps */
+.confirm-step {
+  background: var(--off-white);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  margin-bottom: .85rem;
+  text-align: left;
+}
+.confirm-step-label {
+  font-weight: 700;
+  font-size: .95rem;
+  margin-bottom: .65rem;
+  color: var(--ink);
+}
+.confirm-step-note {
+  font-size: .8rem;
+  opacity: .6;
+  margin-top: .5rem;
+  margin-bottom: 0;
+}
+/* Pay button — big, branded */
+.btn-pay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  width: 100%;
+  padding: .9rem 1rem;
+  font-size: 1.05rem;
+  border-radius: var(--radius);
+  font-weight: 700;
+  border: var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform .1s, box-shadow .1s;
+  box-shadow: var(--shadow);
+}
+.btn-pay:active { transform: translate(2px,2px); box-shadow: none; }
+.btn-pay-cashapp { background: #00C244; color: var(--white); }
+.btn-pay-cashapp:hover { background: #00a83a; }
+.btn-pay-venmo   { background: #3D95CE; color: var(--white); }
+.btn-pay-venmo:hover { background: #2e80b5; }
+.btn-pay-apple   { background: var(--ink); color: var(--white); }
+.btn-pay-apple:hover { background: #3d2518; }
+.pay-btn-icon { font-size: 1.2rem; }
+
+/* Apple Cash note */
+.applepay-note {
+  font-size: .85rem;
+  line-height: 1.5;
+  opacity: .75;
+  margin-top: .5rem;
+  margin-bottom: 0;
+  text-align: left;
+}
+
 .order-summary-block {
   background: var(--off-white);
   border: var(--border);
   border-radius: var(--radius);
   text-align: left;
   padding: .85rem 1rem;
-  margin-bottom: 1rem;
+  margin-top: .75rem;
   overflow-x: auto;
 }
 .order-summary-block pre {
@@ -614,16 +688,40 @@ section, .hero, .how-it-works, .menu-section, .cart-section,
   word-break: break-word;
   line-height: 1.6;
 }
-.confirm-actions {
-  display: flex;
-  gap: .75rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 1.25rem;
+.confirm-summary-details {
+  margin-bottom: .85rem;
+  text-align: left;
 }
-.confirm-actions .btn { flex: 1; min-width: 140px; }
-.confirm-next { font-size: .88rem; opacity: .75; margin-bottom: 1.25rem; text-align: left; }
-.confirm-next p { margin-bottom: .4rem; }
+.confirm-summary-details summary {
+  cursor: pointer;
+  font-size: .88rem;
+  font-weight: 600;
+  opacity: .6;
+  padding: .3rem 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+.confirm-summary-details summary::after { content: '▸'; }
+.confirm-summary-details[open] summary::after { content: '▾'; }
+.confirm-next { font-size: .85rem; opacity: .65; margin-bottom: 1rem; text-align: left; }
+.confirm-next p { margin-bottom: .35rem; }
+
+/* Inline "Copy code" button inside confirm step note */
+.inline-copy-btn {
+  display: inline;
+  background: var(--ink);
+  color: var(--white);
+  border: none;
+  border-radius: 3px;
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .15rem .45rem;
+  cursor: pointer;
+  margin-left: .3rem;
+  vertical-align: middle;
+}
 
 /* ── FAQ ── */
 .faq-inner { padding: 2rem 1rem; }
