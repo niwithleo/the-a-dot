@@ -39,6 +39,11 @@ const CONFIG = {
 
   // ── Scarcity limit (shown in ticker/hero) ──────
   cupsPerDrop: 175,
+
+  // ── Google Sheet order logging ─────────────────
+  // Paste your Apps Script web app URL here after following the
+  // setup steps in google-apps-script.js. Leave "" to disable.
+  sheetEndpoint: "",
 };
 
 /* ══════════════════════════════════════════════
@@ -660,6 +665,37 @@ function renderConfirmPayment(method, total, code) {
 }
 
 /* ══════════════════════════════════════════════
+   SHEET LOGGING (fire-and-forget)
+   ══════════════════════════════════════════════ */
+
+function logOrderToSheet(code, name, phone, payMethod, total) {
+  if (!CONFIG.sheetEndpoint) return;
+
+  const labels   = { cashapp: 'Cash App', venmo: 'Venmo', applepay: 'Apple Cash' };
+  const itemsStr = cart.map(item => {
+    if (item.type === 'single') return item.name;
+    const breakdown = COLORS
+      .filter(c => item.colors[c.id] > 0)
+      .map(c => `${item.colors[c.id]}× ${c.label}`)
+      .join(', ');
+    return `${item.name} [${breakdown}]`;
+  }).join('; ');
+
+  fetch(CONFIG.sheetEndpoint, {
+    method: 'POST',
+    mode:   'no-cors',   // Apps Script doesn't handle CORS preflight
+    body:   JSON.stringify({
+      code,
+      name,
+      phone,
+      items:     itemsStr,
+      total,
+      payMethod: labels[payMethod] || payMethod,
+    }),
+  }).catch(() => {}); // never block the order flow on a logging failure
+}
+
+/* ══════════════════════════════════════════════
    ORDER CODE GENERATION
    ══════════════════════════════════════════════ */
 
@@ -797,6 +833,9 @@ function placeOrder(e) {
 
   // Build pay block based on method
   renderConfirmPayment(payMethod, total, code);
+
+  // Log to Google Sheet (non-blocking)
+  logOrderToSheet(code, name, phone, payMethod, total);
 
   showView('confirm');
 }
