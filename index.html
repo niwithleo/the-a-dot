@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The A-Dot — dot cakes outta The A. Pre-order fresh dot cakes for Saturday pickup in Atlanta, GA." />
+  <meta property="og:title" content="The A-Dot — Dot Cakes Outta The A" />
+  <meta property="og:description" content="Pre-order dot cakes for Saturday pickup in Atlanta. Only 175 cups per drop." />
+  <meta property="og:type" content="website" />
+  <title>The A-Dot — Dot Cakes Outta The A</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <header class="site-header" role="banner">
+    <div class="nav-inner">
+      <a href="#" class="logo" aria-label="The A-Dot home" data-view="home">
+        <span class="logo-dot" aria-hidden="true"></span>
+        The A-Dot
+      </a>
+      <nav aria-label="Main navigation">
+        <button class="nav-btn active" data-view="home">Order</button>
+        <button class="nav-btn" data-view="faq">FAQ</button>
+      </nav>
+      <button class="cart-btn" id="cartBtn" aria-label="Open cart, 0 items">
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="cart-count" id="cartCount" aria-live="polite">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── MARTA TICKER ── -->
+  <div class="ticker-wrap" role="marquee" aria-label="Announcement: Only 175 cups per drop — when they're gone, they're gone.">
+    <div class="ticker-track" id="tickerTrack">
+      <span>Only 175 cups per drop — when they're gone, they're gone.</span>
+      <span aria-hidden="true">Pre-orders only. Pickup Saturday, 8 AM – 12:30 PM.</span>
+      <span aria-hidden="true">Pay when you order. No day-of orders. No delivery.</span>
+      <span aria-hidden="true">Only 175 cups per drop — when they're gone, they're gone.</span>
+      <span aria-hidden="true">Pre-orders only. Pickup Saturday, 8 AM – 12:30 PM.</span>
+      <span aria-hidden="true">Pay when you order. No day-of orders. No delivery.</span>
+    </div>
+  </div>
+
+  <!-- ══ MAIN ══ -->
+  <main id="main">
+
+    <!-- ── VIEW: HOME ── -->
+    <section id="view-home" class="view active" aria-label="Order page">
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-dots" aria-hidden="true"></div>
+        <div class="hero-content">
+          <h1>Dot Cakes<br>Outta The A.</h1>
+          <p class="hero-sub">Fresh-baked Friday night. Pick up Saturday morning.<br>Atlanta only. Pre-order only. No exceptions.</p>
+          <p class="hero-scarcity">Only <strong>175 cups</strong> per drop.</p>
+          <a href="#menu" class="btn btn-primary hero-cta">Order Now</a>
+        </div>
+      </div>
+
+      <!-- HOW IT WORKS -->
+      <div class="how-it-works">
+        <h2>How It Works</h2>
+        <ol class="steps">
+          <li><span class="step-num">1</span><div><strong>Pick your cups</strong> — singles or packs, mix any colors you want.</div></li>
+          <li><span class="step-num">2</span><div><strong>Text your order</strong> — we send you a unique order code.</div></li>
+          <li><span class="step-num">3</span><div><strong>Pay right away</strong> — Cash App, Venmo, or Apple Cash. Payment clears by Friday 8 PM.</div></li>
+          <li><span class="step-num">4</span><div><strong>Pick up Saturday</strong> — 8 AM–12:30 PM. Address comes in your confirmation text.</div></li>
+        </ol>
+      </div>
+
+      <!-- MENU -->
+      <div class="menu-section" id="menu">
+        <h2>The Menu</h2>
+        <p class="menu-note">8 oz cups. Vanilla funfetti cake + frosting. Topped with nonpareils.</p>
+
+        <h3 class="menu-cat">Singles — $8 each</h3>
+        <div class="product-grid" id="singlesGrid">
+          <!-- Injected by JS -->
+        </div>
+
+        <h3 class="menu-cat">Packs — Mix &amp; Match Any Color</h3>
+        <div class="product-grid" id="packsGrid">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- CART -->
+      <div class="cart-section" id="cartSection" aria-label="Your cart">
+        <h2>Your Cart</h2>
+        <div id="cartEmpty" class="cart-empty">
+          <p>Nothing here yet. Add something above.</p>
+        </div>
+        <div id="cartItems" class="cart-items" aria-live="polite"></div>
+        <div id="cartSummary" class="cart-summary" hidden>
+          <div class="cart-total-row">
+            <span>Total</span>
+            <strong id="cartTotal">$0</strong>
+          </div>
+          <button class="btn btn-primary" id="checkoutBtn">Checkout →</button>
+        </div>
+      </div>
+
+      <!-- CHECKOUT -->
+      <div class="checkout-section" id="checkoutSection" hidden aria-label="Checkout form">
+        <h2>Checkout</h2>
+
+        <form id="checkoutForm" novalidate>
+          <div class="field-group">
+            <label for="custName">Your Name <span aria-hidden="true">*</span></label>
+            <input type="text" id="custName" name="name" autocomplete="name" placeholder="Full name" required />
+            <span class="field-error" id="nameError" role="alert"></span>
+          </div>
+          <div class="field-group">
+            <label for="custPhone">Your Phone <span aria-hidden="true">*</span></label>
+            <input type="tel" id="custPhone" name="phone" autocomplete="tel" placeholder="(404) 555-0100" required />
+            <span class="field-error" id="phoneError" role="alert"></span>
+          </div>
+
+          <fieldset class="payment-fieldset">
+            <legend>Pay With <span aria-hidden="true">*</span></legend>
+            <div class="payment-methods" id="paymentMethods">
+              <label class="pay-card" id="payCard-cashapp">
+                <input type="radio" name="payMethod" value="cashapp" />
+                <span class="pay-icon cashapp-icon" aria-hidden="true">$</span>
+                <span class="pay-label">Cash App</span>
+              </label>
+              <label class="pay-card" id="payCard-venmo">
+                <input type="radio" name="payMethod" value="venmo" />
+                <span class="pay-icon venmo-icon" aria-hidden="true">V</span>
+                <span class="pay-label">Venmo</span>
+              </label>
+              <label class="pay-card" id="payCard-applepay">
+                <input type="radio" name="payMethod" value="applepay" />
+                <span class="pay-icon apple-icon" aria-hidden="true">&#xf8ff;</span>
+                <span class="pay-label">Apple Cash</span>
+              </label>
+            </div>
+            <span class="field-error" id="payError" role="alert"></span>
+          </fieldset>
+
+          <!-- Payment instructions — hidden until method selected -->
+          <div class="pay-instructions" id="payInstructions" hidden aria-live="polite">
+            <h3 id="payInstructionsTitle">How to Pay</h3>
+            <ol id="payInstructionsList"></ol>
+          </div>
+
+          <div class="checkout-total-row">
+            <span>Order Total</span>
+            <strong id="checkoutTotal">$0</strong>
+          </div>
+
+          <span class="field-error" id="formError" role="alert"></span>
+          <button type="submit" class="btn btn-primary btn-full" id="placeOrderBtn">Place Order &amp; Text It →</button>
+          <button type="button" class="btn btn-ghost btn-full" id="backToCartBtn">← Back to Cart</button>
+        </form>
+      </div>
+
+      <!-- CONFIRMATION -->
+      <div class="confirm-section" id="confirmSection" hidden aria-label="Order confirmation">
+        <div class="confirm-inner">
+          <div class="confirm-icon" aria-hidden="true">&#x2714;</div>
+          <h2>Order Placed!</h2>
+          <p class="confirm-sub">Text your order to us now — we bake fresh Friday night and you pick up Saturday.</p>
+
+          <div class="order-code-block" id="orderCodeBlock">
+            <p class="order-code-label">Your Order Code</p>
+            <p class="order-code" id="orderCode" aria-live="polite"></p>
+          </div>
+
+          <div class="order-summary-block" id="orderSummaryBlock" aria-label="Order summary">
+            <pre id="orderSummaryText" tabindex="0"></pre>
+          </div>
+
+          <div class="confirm-actions">
+            <a href="#" class="btn btn-primary" id="smsBtn" aria-label="Text order to The A-Dot">
+              📱 Text My Order
+            </a>
+            <button class="btn btn-secondary" id="copyBtn" aria-label="Copy order summary to clipboard">
+              Copy Summary
+            </button>
+          </div>
+
+          <div class="confirm-next">
+            <p>We'll text you the pickup address and your slot within 30–60 minutes of payment clearing.</p>
+            <p><strong>Payment must clear by Friday 8 PM</strong> or your order won't be baked.</p>
+          </div>
+
+          <button class="btn btn-ghost btn-full" id="newOrderBtn">Start a New Order</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── VIEW: FAQ ── -->
+    <section id="view-faq" class="view" aria-label="FAQ page" hidden>
+      <div class="faq-inner">
+        <h1>FAQ</h1>
+        <div class="faq-list" id="faqList">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER (all views) ── -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <p class="footer-brand">The A-Dot &mdash; Atlanta, GA</p>
+      <details class="terms-details">
+        <summary>Terms &amp; Conditions</summary>
+        <div class="terms-body" id="termsBody">
+          <!-- Injected by JS -->
+        </div>
+      </details>
+      <p class="footer-copy">&copy; <span id="footerYear"></span> The A-Dot. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- CART DRAWER (slide-in) -->
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Cart drawer" aria-hidden="true" role="dialog">
+    <div class="drawer-header">
+      <h2>Your Cart</h2>
+      <button class="drawer-close" id="drawerClose" aria-label="Close cart">&#x2715;</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-footer" id="drawerFooter"></div>
+  </aside>
+  <div class="cart-overlay" id="cartOverlay" aria-hidden="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
