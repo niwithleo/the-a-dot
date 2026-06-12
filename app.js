@@ -75,6 +75,13 @@ const SINGLES = [
     color: "green",
     dots: ["green","green","green","green","green"],
   },
+  {
+    id: "gold-line",
+    name: "The Gold Line",
+    desc: "All gold dots. The newest route.",
+    color: "gold",
+    dots: ["gold","gold","gold","gold","gold"],
+  },
 ];
 
 const PACKS = [
@@ -102,6 +109,80 @@ const COLORS = [
   { id: "gold",  label: "Gold Line",  dotClass: "dot-gold"  },
   { id: "green", label: "Green Line", dotClass: "dot-green" },
 ];
+
+/* ══════════════════════════════════════════════
+   CUP SVG ILLUSTRATION SYSTEM
+   ══════════════════════════════════════════════ */
+
+// Pre-computed dot positions scattered across the frosting dome
+// (viewBox 0 0 180 200 — dome peaks at y=20, base at y=97)
+const DOT_POSITIONS = [
+  [84,32],[90,24],[96,32],                             // peak cluster
+  [72,46],[82,40],[91,38],[100,40],[110,47],            // upper tier
+  [58,58],[71,53],[84,50],[97,51],[110,54],[124,59],    // middle tier
+  [50,70],[64,67],[78,63],[92,62],[106,65],[120,69],    // lower tier
+  [57,82],[71,79],[85,77],[100,76],[115,80],[128,84],   // bottom band
+];
+
+const COLOR_HEX = {
+  red:   '#CE242B',
+  blue:  '#0076BF',
+  gold:  '#F0A500',
+  green: '#009A4E',
+  empty: '#DDD5CC',
+};
+
+// MARTA accent color shown as the band on each cup
+const LINE_ACCENT = {
+  'five-points': '#F0A500',
+  'red-line':    '#CE242B',
+  'blue-line':   '#0076BF',
+  'gold-line':   '#F0A500',
+  'green-line':  '#009A4E',
+};
+
+function dotCakeSVG(dotColors, accentHex, svgId = 'cup') {
+  const dots = DOT_POSITIONS.map((pos, i) => {
+    const c = dotColors[i % dotColors.length];
+    const fill = COLOR_HEX[c] || COLOR_HEX.empty;
+    return `<circle cx="${pos[0]}" cy="${pos[1]}" r="5.5" fill="${fill}" stroke="rgba(0,0,0,0.17)" stroke-width="0.6"/>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg" class="cup-svg" aria-hidden="true">
+  <defs>
+    <clipPath id="dc${svgId}">
+      <path d="M28,97 C28,90 40,68 58,48 C68,36 76,26 90,20 C104,26 112,36 122,48 C140,68 152,90 152,97 Z"/>
+    </clipPath>
+  </defs>
+  <ellipse cx="91" cy="192" rx="56" ry="6" fill="rgba(42,26,18,0.13)"/>
+  <path d="M28,97 L152,97 L136,183 L44,183 Z" fill="#FFF8F4" stroke="#2A1A12" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M28,97 L152,97 L147,114 L33,114 Z" fill="${accentHex}"/>
+  <line x1="66"  y1="97" x2="60"  y2="180" stroke="rgba(42,26,18,0.07)" stroke-width="1"/>
+  <line x1="90"  y1="97" x2="90"  y2="180" stroke="rgba(42,26,18,0.07)" stroke-width="1"/>
+  <line x1="114" y1="97" x2="120" y2="180" stroke="rgba(42,26,18,0.07)" stroke-width="1"/>
+  <line x1="44"  y1="177" x2="136" y2="177" stroke="rgba(42,26,18,0.18)" stroke-width="1.5"/>
+  <path d="M28,97 C28,90 40,68 58,48 C68,36 76,26 90,20 C104,26 112,36 122,48 C140,68 152,90 152,97 Z" fill="#FFFAF7" stroke="#2A1A12" stroke-width="2.5"/>
+  <path d="M46,84 Q68,72 90,70 Q112,72 134,84" fill="none" stroke="#EDE5DD" stroke-width="2" stroke-linecap="round"/>
+  <path d="M36,92 Q60,78 90,76 Q120,78 144,92" fill="none" stroke="#EDE5DD" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M90,20 C87,11 90,5 90,5 C90,5 93,11 90,20" fill="#FFFAF7" stroke="#2A1A12" stroke-width="2"/>
+  <path d="M34,92 C42,84 52,68 64,54 C72,42 78,33 84,26 C80,34 73,48 64,64 C56,76 44,86 34,92 Z" fill="rgba(255,255,255,0.45)"/>
+  <g clip-path="url(#dc${svgId})">${dots}</g>
+</svg>`;
+}
+
+// Convert a pack draft {red,blue,gold,green} into a color array for dotCakeSVG
+function draftColorArray(draft, total) {
+  const n = DOT_POSITIONS.length;
+  if (total === 0) return Array(n).fill('empty');
+  const arr = [];
+  for (const [color, count] of Object.entries(draft)) {
+    const slots = Math.round(count / total * n);
+    for (let i = 0; i < slots; i++) arr.push(color);
+  }
+  const dominant = Object.entries(draft).sort((a, b) => b[1] - a[1])[0]?.[0] || 'empty';
+  while (arr.length < n) arr.push(dominant);
+  return arr.slice(0, n);
+}
 
 const FAQ_ITEMS = [
   {
@@ -190,31 +271,32 @@ function showView(name) {
    RENDER — MENU
    ══════════════════════════════════════════════ */
 
-function renderDotSwatch(dots) {
-  return `<div class="dot-swatch" aria-hidden="true">${
-    dots.map(d => `<span class="dot dot-${d}"></span>`).join('')
-  }</div>`;
-}
-
 function renderSingles() {
   const grid = $('#singlesGrid');
   if (!grid) return;
-  grid.innerHTML = SINGLES.map(p => `
+  grid.innerHTML = SINGLES.map(p => {
+    const accentHex = LINE_ACCENT[p.id] || '#F0A500';
+    const svg = dotCakeSVG(p.dots, accentHex, p.id);
+    return `
     <div class="product-card" data-color="${p.color}">
-      <div class="product-card-header">
-        <span class="product-card-name">${p.name}</span>
-        <span class="product-card-price">$${CONFIG.singlePrice}</span>
+      <div class="product-card-visual card-bg-${p.color}">
+        ${svg}
       </div>
-      <p class="product-card-desc">${p.desc}</p>
-      ${renderDotSwatch(p.dots)}
-      <button
-        class="btn btn-primary add-single-btn"
-        data-single-id="${p.id}"
-        aria-label="Add ${p.name} to cart, $${CONFIG.singlePrice}">
-        Add to Cart
-      </button>
-    </div>
-  `).join('');
+      <div class="product-card-body">
+        <div class="product-card-header">
+          <span class="product-card-name">${p.name}</span>
+          <span class="product-card-price">$${CONFIG.singlePrice}</span>
+        </div>
+        <p class="product-card-desc">${p.desc}</p>
+        <button
+          class="btn btn-primary add-single-btn"
+          data-single-id="${p.id}"
+          aria-label="Add ${p.name} to cart, $${CONFIG.singlePrice}">
+          Add to Cart
+        </button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderPacks() {
@@ -223,16 +305,29 @@ function renderPacks() {
   grid.innerHTML = PACKS.map(pk => {
     const draft = getPackDraft(pk.id);
     const total = sumDraft(draft);
-    const pct = Math.min(100, (total / pk.cups) * 100);
+    const pct   = Math.min(100, (total / pk.cups) * 100);
     const exact = total === pk.cups;
     const over  = total > pk.cups;
+    const colors = draftColorArray(draft, total);
+    // Pack cup accent: mix gold if empty, or dominant color
+    const dominantColor = total > 0
+      ? Object.entries(draft).sort((a,b) => b[1]-a[1])[0][0]
+      : 'empty';
+    const packAccent = total > 0 ? (COLOR_HEX[dominantColor] || '#F0A500') : '#555';
+    const svg = dotCakeSVG(colors, packAccent, pk.id);
+
     return `
-      <div class="product-card" data-color="pack" data-pack-id="${pk.id}">
+    <div class="product-card product-card-pack" data-color="pack" data-pack-id="${pk.id}">
+      <div class="product-card-visual card-bg-pack">
+        ${svg}
+        <div class="pack-cup-label">${total > 0 ? `${total}/${pk.cups} cups` : `${pk.cups} cups`}</div>
+      </div>
+      <div class="product-card-body">
         <div class="product-card-header">
           <span class="product-card-name">${pk.name}</span>
           <span class="product-card-price">$${pk.price}</span>
         </div>
-        <p class="product-card-desc">${pk.desc} Save $${pk.savings}.</p>
+        <p class="product-card-desc">${pk.desc} <span class="savings-tag">Save $${pk.savings}</span></p>
 
         <div class="pack-builder" aria-label="${pk.name} color builder">
           ${COLORS.map(c => `
@@ -242,14 +337,12 @@ function renderPacks() {
                 ${c.label}
               </span>
               <div class="stepper" role="group" aria-label="${c.label} quantity">
-                <button
-                  class="stepper-btn"
+                <button class="stepper-btn"
                   data-pack="${pk.id}" data-color="${c.id}" data-action="dec"
                   aria-label="Remove one ${c.label}"
                   ${draft[c.id] === 0 ? 'disabled' : ''}>−</button>
-                <span class="stepper-val" aria-live="polite" aria-label="${c.label} count">${draft[c.id]}</span>
-                <button
-                  class="stepper-btn"
+                <span class="stepper-val" aria-live="polite">${draft[c.id]}</span>
+                <button class="stepper-btn"
                   data-pack="${pk.id}" data-color="${c.id}" data-action="inc"
                   aria-label="Add one ${c.label}"
                   ${total >= pk.cups ? 'disabled' : ''}>+</button>
@@ -261,23 +354,18 @@ function renderPacks() {
             <div class="pack-progress-bar" style="width:${pct}%"></div>
           </div>
           <p class="pack-status ${exact ? 'exact' : over ? 'over' : ''}" aria-live="polite">
-            ${exact
-              ? `Pack full! (${total}/${pk.cups})`
-              : over
-                ? `Too many — remove ${total - pk.cups}`
-                : `${total}/${pk.cups} cups selected`}
+            ${exact ? `Pack full! ✓` : over ? `Too many — remove ${total - pk.cups}` : `${total} of ${pk.cups} cups chosen`}
           </p>
         </div>
 
-        <button
-          class="btn btn-primary add-pack-btn"
+        <button class="btn btn-primary add-pack-btn"
           data-pack-id="${pk.id}"
           aria-label="Add ${pk.name} to cart"
           ${!exact ? 'disabled' : ''}>
-          ${exact ? `Add Pack — $${pk.price}` : `Fill all ${pk.cups} cups first`}
+          ${exact ? `Add Pack — $${pk.price}` : `Choose all ${pk.cups} cups to add`}
         </button>
       </div>
-    `;
+    </div>`;
   }).join('');
 }
 
@@ -876,6 +964,16 @@ function attachEvents() {
    ══════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Inject hero cup (Five Points — all four line colors)
+  const heroCup = $('#heroCup');
+  if (heroCup) {
+    heroCup.innerHTML = dotCakeSVG(
+      ['red','blue','gold','green'],
+      LINE_ACCENT['five-points'],
+      'hero'
+    );
+  }
+
   renderSingles();
   renderPacks();
   renderCart();
@@ -883,10 +981,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderFooter();
   attachEvents();
 
-  // Set initial view
   showView('home');
 
-  // Footer year
   const yr = $('#footerYear');
   if (yr) yr.textContent = new Date().getFullYear();
 });
