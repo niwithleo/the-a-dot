@@ -1,6 +1,5 @@
-function doPost(e) {
+function doGet(e) {
   try {
-    var data = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName("Orders") || ss.getSheets()[0];
 
@@ -16,22 +15,18 @@ function doPost(e) {
 
     sheet.appendRow([
       Utilities.formatDate(new Date(), "America/New_York", "MM/dd/yyyy HH:mm:ss"),
-      data.code,
-      data.name,
-      data.phone,
-      data.items,
-      "$" + data.total,
-      data.payMethod,
+      e.parameter.code,
+      e.parameter.name,
+      e.parameter.phone,
+      e.parameter.items,
+      "$" + e.parameter.total,
+      e.parameter.payMethod,
       "Pending"
     ]);
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ok: true}))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput("ok");
 
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ok: false, error: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput("error: " + err.toString());
   }
 }

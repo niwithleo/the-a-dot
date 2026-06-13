@@ -676,23 +676,23 @@ function logOrderToSheet(code, name, phone, payMethod, total) {
     if (item.type === 'single') return item.name;
     const breakdown = COLORS
       .filter(c => item.colors[c.id] > 0)
-      .map(c => `${item.colors[c.id]}× ${c.label}`)
+      .map(c => `${item.colors[c.id]}x ${c.label}`)
       .join(', ');
     return `${item.name} [${breakdown}]`;
   }).join('; ');
 
-  fetch(CONFIG.sheetEndpoint, {
-    method: 'POST',
-    mode:   'no-cors',   // Apps Script doesn't handle CORS preflight
-    body:   JSON.stringify({
-      code,
-      name,
-      phone,
-      items:     itemsStr,
-      total,
-      payMethod: labels[payMethod] || payMethod,
-    }),
-  }).catch(() => {}); // never block the order flow on a logging failure
+  // GET request avoids the Apps Script POST redirect issue
+  const params = new URLSearchParams({
+    code,
+    name,
+    phone,
+    items:     itemsStr,
+    total,
+    payMethod: labels[payMethod] || payMethod,
+  });
+
+  fetch(`${CONFIG.sheetEndpoint}?${params}`, { mode: 'no-cors' })
+    .catch(() => {}); // never block the order flow on a logging failure
 }
 
 /* ══════════════════════════════════════════════
