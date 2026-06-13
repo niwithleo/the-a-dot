@@ -43,7 +43,7 @@ const CONFIG = {
   // ── Google Sheet order logging ─────────────────
   // Paste your Apps Script web app URL here after following the
   // setup steps in google-apps-script.js. Leave "" to disable.
-  sheetEndpoint: "",
+  sheetEndpoint: "https://script.google.com/macros/s/AKfycbxdF1OE3a4eXwqvwZIDqjzEnKRolsMW8flRwdIcQPLj0q4Ji0R5m8ex5QZfL6bsVGxqkA/exec",
 };
 
 /* ══════════════════════════════════════════════
